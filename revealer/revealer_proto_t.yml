@@ -1,0 +1,31 @@
+# lindwurm
+#Copyright (C) 2016  Matthias Tafelmeier
+
+#lindwurm is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+
+#lindwurm is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with this program. If not, see <http://www.gnu.org/licenses/>.
+---
+    - hosts: all
+      gather_facts: False
+      vars:
+          # todo ran._time?
+          nmap_out: /tmp/nmap_out
+          nmap_targets: /tmp/nmap_targets
+          mrt_out: /tmp/mrt_out
+      tasks:
+          - name: reveal by nmap scan 
+            raw: nmap -iL {{ nmap_targets }} {{ nmap_opts }} -oX {{ nmap_out }}
+          - name: reveal by mtr probing 
+            raw: mtr -x >> {{ item }}
+            with: play_hosts 
+          - name: transport revealed intelig. to illustrator
+            #todo get setting
