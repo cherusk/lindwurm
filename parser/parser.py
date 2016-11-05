@@ -14,20 +14,41 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import xmltodict
+import json
 
 class Parser:
+    """ Parser Iface """
     def __init__(self):
         pass
+    def parse(self, target):
+        """ Generic Parsing
+        target: file to parse
+
+        ret:  json encoded revealer data 
+        """
+        # tmp: for dbg purpose
+        raise  NotImplementedError
 
 class NmapParser(Parser):
     def __init__(self):
         pass
+    def parse(self, target):
+        with open(target, 'rb') as f:
+            xml = f.read()
+        return json.dumps(xmltodict.parse(xml))
 
 class MtrParser(Parser):
     def __init__(self):
         pass
+    def parse(self, target):
+        with open(target, 'rb') as f:
+            xml = f.read()
+        return json.dumps(xmltodict.parse(xml))
 
 class OwpingParser(Parser):
     def __init__(self):
+        pass
+    def parse(self, target):
         pass
 

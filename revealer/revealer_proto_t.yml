@@ -23,8 +23,8 @@
           nmap_targets_src: ./nmap_targets
           mtr_out_dir: /tmp/mtr_out/
           # local
-          l_mtr_out_dir: ./mtr_out/
-          l_nmap_out_dir: ./nmap_out/
+          l_mtr_out_dir:  ../runs/mtr_out/
+          l_nmap_out_dir: ../runs/nmap_out/
       tasks:
           - name: prep nmap probing out directory
             file: path={{ nmap_out }} state=directory mode=0755
@@ -40,7 +40,7 @@
             file: path={{ mtr_out_dir }} state=directory mode=0755
 
           - name: reveal by mtr probing 
-            raw: mtr -x {{ item }} >> {{ mtr_out_dir }}{{ item }}
+            raw: mtr -x {{ item }} > {{ mtr_out_dir }}{{ item }}
             when: item != inventory_hostname
             with_items: play_hosts 
 
