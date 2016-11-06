@@ -28,6 +28,3 @@ class Illustrator:
     def run(self):
         self.aggregator.run() 
 
-
-illustrator = Illustrator(config)
-illustrator.run()

@@ -28,6 +28,8 @@ class Lindwurm:
         self.cohesion_parser.add_argument('--t_serv')
         self.cohesion_parser.add_argument('--t_ports')
 
+        self.illustrator = Illustrator(self.config)
+
     def parse_args(self):
         self.args = self.lw_parser.parse_args()
 
@@ -44,7 +46,7 @@ class Lindwurm:
             raise RuntimeError("no config file")
 
     def run(self):
-        pass
+        self.illustrator.run()
 
 if __name__ == "__main__":
     lindwurm = Lindwurm()
