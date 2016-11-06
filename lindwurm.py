@@ -15,9 +15,15 @@
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
+import ConfigParser
+import os
+from illustrator.illustrator_core import Illustrator
 
 class Lindwurm:
     def __init__(self):
+
+        self.load_cnfg()
+
         # Todo descriptions
         self.lw_parser = argparse.ArgumentParser(description='Lindwurm')
         self.lw_subparsers = \
@@ -27,6 +33,7 @@ class Lindwurm:
         self.cohesion_parser.add_argument('objectives', metavar='obj', nargs='+', choices=['link', 'net', 'transport']) 
         self.cohesion_parser.add_argument('--t_serv')
         self.cohesion_parser.add_argument('--t_ports')
+
 
         self.illustrator = Illustrator(self.config)
 
@@ -40,7 +47,7 @@ class Lindwurm:
         cnfg_loc = [ conf_dir_path + '/' + conf_file ]
 
         self.config = ConfigParser.SafeConfigParser()
-        parsed_cnfg_f = config.read(cnfg_loc)
+        parsed_cnfg_f = self.config.read(cnfg_loc)
 
         if not parsed_cnfg_f:
             raise RuntimeError("no config file")
