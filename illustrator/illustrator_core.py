@@ -28,17 +28,6 @@ class Illustrator:
     def run(self):
         self.aggregator.run() 
 
-mod_parent_path = os.path.abspath(__file__ + "/../")
-conf_dir_path = os.path.dirname(mod_parent_path)
-conf_file = "lindwurm.cfg" 
-
-cnfg_loc = [ conf_dir_path + '/' + conf_file ]
-config = ConfigParser.SafeConfigParser()
-cfg_parsed = config.read(cnfg_loc)
-
-if not cfg_parsed:
-    raise RuntimeError("no config file")
 
 illustrator = Illustrator(config)
 illustrator.run()
-

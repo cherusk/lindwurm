@@ -31,6 +31,18 @@ class Lindwurm:
     def parse_args(self):
         self.args = self.lw_parser.parse_args()
 
+    def load_cnfg(self):
+        mod_path = os.path.abspath(__file__) 
+        conf_dir_path = os.path.dirname(mod_path)
+        conf_file = "lindwurm.cfg" 
+        cnfg_loc = [ conf_dir_path + '/' + conf_file ]
+
+        self.config = ConfigParser.SafeConfigParser()
+        parsed_cnfg_f = config.read(cnfg_loc)
+
+        if not parsed_cnfg_f:
+            raise RuntimeError("no config file")
+
     def run(self):
         pass
 
