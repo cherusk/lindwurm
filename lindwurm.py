@@ -31,9 +31,11 @@ class Lindwurm:
 
         self.cohesion_parser = self.lw_subparsers.add_parser('cohesion', description='cohesion')
         self.cohesion_parser.add_argument('objectives', metavar='obj', nargs='+', choices=['link', 'net', 'transport']) 
+
+        #Todo: sane defs.
+        self.cohesion_parser.add_argument('--n_prots')
         self.cohesion_parser.add_argument('--t_serv')
         self.cohesion_parser.add_argument('--t_ports')
-
 
         self.illustrator = Illustrator(self.config)
 
@@ -53,7 +55,7 @@ class Lindwurm:
             raise RuntimeError("no config file")
 
     def run(self):
-        self.illustrator.run()
+        construer = self.illustrator.conjure(self.args.curr_subcmd)
 
 if __name__ == "__main__":
     lindwurm = Lindwurm()

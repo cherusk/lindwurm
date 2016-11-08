@@ -14,35 +14,10 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from parser.aggregator import Aggregator
-import ConfigParser
-import os
+from illustrator_core import Construer
 
-class Illustrator:
-    """ Hub module for depicting revealer aggregated intelligence 
-        in various facettes. 
-    """
-    def __init__(self, settings):
-        #Todo partition settings
-        self.aggregator = Aggregator(settings) 
-
-    def conjure(self, submodule):
-        self.aggreg_data = self.aggregator.run() 
-
-        former = getattr(self, submodule, "unknown")
-
-        if former == "unknown":
-            raise RuntimeError("unknown submodule")
-
-        construer = former(aggreg_data)
-
-        return  construer
-
-    def cohesion(self):
-        return Cohesion(self.aggreg_data)
-
-class Construer:
-    def __init__(self, aggreg_run_data):
+class Cohesion(Construer):
+    def __init__(self):
         pass
 
     def do_graphical(self):
@@ -50,4 +25,3 @@ class Construer:
 
     def do_term(self):
         raise  NotImplementedError
-
