@@ -29,10 +29,17 @@ class Aggregator:
         """
 
         is_first = True
+        is_first_n = True 
         nmap_out_dir = self.conf.get(self.conf_section, 'nmap_out')
-        aggl_run_json = '{ "run" : { "nmap": [ ' 
+        aggl_run_json = '{ "run" : { "nmap": { ' 
         for root, dirs, files in os.walk(nmap_out_dir):
             if root != nmap_out_dir:
+                base_n = os.path.basename(root)
+                if is_first_n: 
+                    aggl_run_json = "%s \"%s\" : [ " % (aggl_run_json, base_n)
+                else:
+                    aggl_run_json = "%s , \"%s\" : [ " % (aggl_run_json, base_n)
+                is_first_n = False
                 for f in files:
                     if is_first:
                         fmt = "%s %s"
@@ -41,13 +48,23 @@ class Aggregator:
                     aggl_run_json = fmt  % \
                             (aggl_run_json, self.parsers['nmap'].parse(root + '/' + f))
                     is_first = False
+                is_first = True
+                aggl_run_json = "%s ]" % (aggl_run_json)
 
         is_first = True
+        is_first_n = True 
         mtr_out_dir = self.conf.get(self.conf_section, 'mtr_out')
-        aggl_run_json =  '%s ], "mtr": [ ' % (aggl_run_json)
+        aggl_run_json =  '%s }, "mtr": { ' % (aggl_run_json)
         for root, dirs, files in os.walk(mtr_out_dir):
             if root != mtr_out_dir:
+                base_n = os.path.basename(root)
+                if is_first_n: 
+                    aggl_run_json = "%s \"%s\" : [ " % (aggl_run_json, base_n)
+                else:
+                    aggl_run_json = "%s , \"%s\" : [ " % (aggl_run_json, base_n)
+                is_first_n = False
                 for f in files: 
+                    base_n = os.path.basename(f)
                     if is_first:
                         fmt = "%s %s"
                     else: 
@@ -55,6 +72,9 @@ class Aggregator:
                     aggl_run_json = fmt % \
                             (aggl_run_json, self.parsers['mtr'].parse(root + '/' + f))
                     is_first = False
+                is_first = True
+                aggl_run_json = "%s ]" % (aggl_run_json)
 
-        aggl_run_json = "%s ] }}" % (aggl_run_json)
+
+        aggl_run_json = "%s } }}" % (aggl_run_json)
         print aggl_run_json
