@@ -28,53 +28,44 @@ class Aggregator:
         aggregate revealer provided raw intelligence from remote sites
         """
 
-        is_first = True
-        is_first_n = True 
-        nmap_out_dir = self.conf.get(self.conf_section, 'nmap_out')
-        aggl_run_json = '{ "run" : { "nmap": { ' 
-        for root, dirs, files in os.walk(nmap_out_dir):
-            if root != nmap_out_dir:
-                base_n = os.path.basename(root)
-                if is_first_n: 
-                    aggl_run_json = "%s \"%s\" : [ " % (aggl_run_json, base_n)
-                else:
-                    aggl_run_json = "%s , \"%s\" : [ " % (aggl_run_json, base_n)
-                is_first_n = False
-                for f in files:
-                    if is_first:
-                        fmt = "%s %s"
-                    else: 
-                        fmt = "%s, %s"
-                    aggl_run_json = fmt  % \
-                            (aggl_run_json, self.parsers['nmap'].parse(root + '/' + f))
-                    is_first = False
-                is_first = True
-                aggl_run_json = "%s ]" % (aggl_run_json)
+        self.aggr_run = ''
+        self.gather_sub_revelation("nmap")
+        #inter closu
+        self.aggr_run = "%s ," % (self.aggr_run)
+        self.gather_sub_revelation("mtr")
 
-        is_first = True
-        is_first_n = True 
-        mtr_out_dir = self.conf.get(self.conf_section, 'mtr_out')
-        aggl_run_json =  '%s }, "mtr": { ' % (aggl_run_json)
-        for root, dirs, files in os.walk(mtr_out_dir):
-            if root != mtr_out_dir:
-                base_n = os.path.basename(root)
-                if is_first_n: 
-                    aggl_run_json = "%s \"%s\" : [ " % (aggl_run_json, base_n)
-                else:
-                    aggl_run_json = "%s , \"%s\" : [ " % (aggl_run_json, base_n)
-                is_first_n = False
+        self.aggr_run = Aggregator.encaps_run(self.aggr_run, 'run')
+
+        print self.aggr_run 
+
+    def gather_sub_revelation(self, revelation):
+        is_first = {"out_p" : True, "node" : True } 
+        out_dir = self.conf.get(self.conf_section, revelation + '_out')
+
+        for root, dirs, files in os.walk(out_dir):
+            if root != out_dir:
+                revealing_node = os.path.basename(root)
+                aggr_revel_n = ''
                 for f in files: 
-                    base_n = os.path.basename(f)
-                    if is_first:
-                        fmt = "%s %s"
-                    else: 
-                        fmt = "%s, %s"
-                    aggl_run_json = fmt % \
-                            (aggl_run_json, self.parsers['mtr'].parse(root + '/' + f))
-                    is_first = False
-                is_first = True
-                aggl_run_json = "%s ]" % (aggl_run_json)
+                    fmt = "%s %s" if is_first['out_p'] else "%s, %s"
+                    aggr_revel_n = fmt % \
+                            (aggr_revel_n, self.parsers[revelation].parse(root + '/' + f))
+                    is_first['out_p'] = False
+                is_first['out_p'] = True
+                self.encaps_revel_node_out(is_first['node'], aggr_revel_n, revealing_node)
+                is_first['node'] = False
 
+        self.aggr_run ="\"%s\" : { %s }" % (revelation, self.aggr_run)
 
-        aggl_run_json = "%s } }}" % (aggl_run_json)
-        print aggl_run_json
+    def encaps_revel_node_out(self, is_first, aggr_revel_n, revealing_node):
+        fmt = ''
+        if is_first: 
+            fmt = "%s \"%s\" : [ %s ]"
+        else:
+            fmt = "%s , \"%s\" : [ %s ]" 
+        self.aggr_run = fmt % (self.aggr_run, revealing_node, aggr_revel_n)
+
+    @staticmethod
+    def encaps_run(aggr_run, run_spec):
+        aggr_run = '{ "%s" : { %s }}' % (run_spec, aggr_run)
+        return aggr_run
