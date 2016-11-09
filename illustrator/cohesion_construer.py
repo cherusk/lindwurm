@@ -17,6 +17,9 @@
 #from illustrator.illustrator_core import Construer
 
 class Construer:
+    """
+    Core Construer Iface
+    """
     def __init__(self, aggreg_run_data):
         pass
 
@@ -27,6 +30,10 @@ class Construer:
         raise  NotImplementedError
 
 class Cohesion(Construer):
+    """
+    Depicting insights regarding distributed nodes cohesion 
+    on several net stack layers
+    """
     def __init__(self, aggreg_run_data):
         pass
 
