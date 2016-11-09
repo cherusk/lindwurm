@@ -42,6 +42,8 @@ class Aggregator:
         is_first = {"out_p" : True, "node" : True } 
         out_dir = self.conf.get(self.conf_section, revelation + '_out')
 
+        self.sub_revel_run = ''
+
         for root, dirs, files in os.walk(out_dir):
             if root != out_dir:
                 revealing_node = os.path.basename(root)
@@ -55,7 +57,7 @@ class Aggregator:
                 self.encaps_revel_node_out(is_first['node'], aggr_revel_n, revealing_node)
                 is_first['node'] = False
 
-        self.aggr_run ="\"%s\" : { %s }" % (revelation, self.aggr_run)
+        self.aggr_run ="%s \"%s\" : { %s }" % (self.aggr_run, revelation, self.sub_revel_run) 
 
     def encaps_revel_node_out(self, is_first, aggr_revel_n, revealing_node):
         fmt = ''
@@ -63,7 +65,7 @@ class Aggregator:
             fmt = "%s \"%s\" : [ %s ]"
         else:
             fmt = "%s , \"%s\" : [ %s ]" 
-        self.aggr_run = fmt % (self.aggr_run, revealing_node, aggr_revel_n)
+        self.sub_revel_run = fmt % (self.sub_revel_run, revealing_node, aggr_revel_n)
 
     @staticmethod
     def encaps_run(aggr_run, run_spec):
