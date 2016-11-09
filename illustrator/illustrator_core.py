@@ -15,6 +15,7 @@
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from parser.aggregator import Aggregator
+from cohesion_construer import Cohesion
 import ConfigParser
 import os
 
@@ -34,20 +35,9 @@ class Illustrator:
         if former == "unknown":
             raise RuntimeError("unknown submodule")
 
-        construer = former(aggreg_data)
+        construer = former()
 
         return  construer
 
     def cohesion(self):
         return Cohesion(self.aggreg_data)
-
-class Construer:
-    def __init__(self, aggreg_run_data):
-        pass
-
-    def do_graphical(self):
-        raise  NotImplementedError
-
-    def do_term(self):
-        raise  NotImplementedError
-

@@ -14,10 +14,20 @@
 #You should have received a copy of the GNU General Public License
 #along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from illustrator_core import Construer
+#from illustrator.illustrator_core import Construer
+
+class Construer:
+    def __init__(self, aggreg_run_data):
+        pass
+
+    def do_graphical(self):
+        raise  NotImplementedError
+
+    def do_term(self):
+        raise  NotImplementedError
 
 class Cohesion(Construer):
-    def __init__(self):
+    def __init__(self, aggreg_run_data):
         pass
 
     def do_graphical(self):
