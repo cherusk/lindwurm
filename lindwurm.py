@@ -57,6 +57,8 @@ class Lindwurm:
     def run(self):
         construer = self.illustrator.conjure(self.args.curr_subcmd)
 
+        construer.do_term(self.args)
+
 if __name__ == "__main__":
     lindwurm = Lindwurm()
 

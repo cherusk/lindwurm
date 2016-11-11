@@ -36,7 +36,7 @@ class Aggregator:
 
         self.aggr_run = Aggregator.encaps_run(self.aggr_run, 'run')
 
-        print self.aggr_run 
+        return self.aggr_run
 
     def gather_sub_revelation(self, revelation):
         is_first = {"out_p" : True, "node" : True } 
@@ -58,6 +58,7 @@ class Aggregator:
                 is_first['node'] = False
 
         self.aggr_run ="%s \"%s\" : { %s }" % (self.aggr_run, revelation, self.sub_revel_run) 
+
 
     def encaps_revel_node_out(self, is_first, aggr_revel_n, revealing_node):
         fmt = ''

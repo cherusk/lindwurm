@@ -29,6 +29,7 @@ class Illustrator:
 
     def conjure(self, submodule):
         self.aggreg_data = self.aggregator.run() 
+        #print self.aggreg_data
 
         former = getattr(self, submodule, "unknown")
 
