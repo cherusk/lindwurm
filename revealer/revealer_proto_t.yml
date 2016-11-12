@@ -18,13 +18,6 @@
       gather_facts: False
       vars:
           # todo ran._time?
-          nmap_out: /tmp/nmap_out/
-          nmap_targets: /tmp/nmap_targets
-          nmap_targets_src: ./nmap_targets
-          mtr_out_dir: /tmp/mtr_out/
-          # local
-          l_mtr_out_dir:  ../runs/mtr_out/
-          l_nmap_out_dir: ../runs/nmap_out/
       tasks:
           - name: prep nmap probing out directory
             file: path={{ nmap_out }} state=directory mode=0755
@@ -51,16 +44,3 @@
           #- name: transport revealed intelig. to illustrator - mtr 
             #synchronize: mode=pull src={{ mtr_out_dir }} dest=./
             #tags: mtr_t
-
-            # tmp solution
-          - raw: ls -1 {{ mtr_out_dir  }}
-            register: found
-
-          - fetch: src={{ mtr_out_dir }}{{ item }} dest={{ l_mtr_out_dir }}/{{ inventory_hostname }}/{{ item }} flat=yes
-            with_items: "{{  found.stdout_lines[1:] }}"
-
-          - raw: ls -1 {{ nmap_out }}
-            register: found
-
-          - fetch: src={{nmap_out}}{{ item }} dest={{ l_nmap_out_dir }}/{{ inventory_hostname }}/{{ item }} flat=yes
-            with_items: "{{  found.stdout_lines[1:] }}"

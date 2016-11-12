@@ -1,0 +1,5 @@
+---
+# vars file for mtr
+r_mtr_out_dir: /tmp/mtr_out/
+# local
+l_mtr_out_dir:  /home/matthias/Projects/sync/lindwurm/runs/mtr_out/

@@ -1,0 +1,6 @@
+---
+    - raw: ls -1 {{ r_out_dir  }}
+      register: found
+
+    - fetch: src={{ r_out_dir }}{{ item }} dest={{ l_out_dir }}/{{ inventory_hostname }}/{{ item }} flat=yes
+      with_items: "{{  found.stdout_lines[1:] }}"

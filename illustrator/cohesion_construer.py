@@ -18,6 +18,8 @@
 
 import json
 from colorama import Fore, Back, Style
+import networkx as nx
+import matplotlib.pyplot as plt
 
 class Construer:
     """
@@ -41,6 +43,10 @@ class Cohesion(Construer):
         self.run_data = aggreg_run_data
 
     def do_graphical(self):
+        #G=nx.Graph([(0,1),(1,2),(2,3)])
+
+        #nx.draw(G)
+        #plt.savefig(".png")
         raise  NotImplementedError
 
     def do_term(self, args):

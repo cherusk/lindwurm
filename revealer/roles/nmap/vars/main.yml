@@ -1,0 +1,5 @@
+---
+# vars file for nmap
+r_nmap_out_dir: /tmp/nmap_out/
+# local
+l_nmap_out_dir: /home/matthias/Projects/sync/lindwurm/runs/nmap_out/

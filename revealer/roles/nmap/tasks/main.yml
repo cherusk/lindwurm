@@ -1,0 +1,12 @@
+---
+# tasks file for nmap
+#
+    - name: prep nmap probing out directory
+      file: path={{ nmap_out }} state=directory mode=0755
+
+    - name: reveal by nmap scan 
+      #todo: after data analys.
+      #-iL {{ nmap_targets }}
+      raw: nmap  {{ item }} {{ opts }} -oX {{ nmap_out }}{{ item }}
+      when: item != inventory_hostname
+      with_items: play_hosts

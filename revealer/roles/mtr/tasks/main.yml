@@ -1,0 +1,9 @@
+---
+# tasks file for mtr
+     - name: prep mtr probing out directory
+       file: path={{ r_mtr_out_dir }} state=directory mode=0755
+
+     - name: reveal by mtr probing 
+       raw: mtr -x {{ item }} > {{ r_mtr_out_dir }}{{ item }}
+       when: item != inventory_hostname
+       with_items: play_hosts 
