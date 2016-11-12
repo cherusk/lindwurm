@@ -1,2 +1,6 @@
 ---
 # vars file for revealer_core
+#
+{% for key, value in conf_seed.iteritems() %}
+{{ key|e }} : {{ value|e }}
+{% endfor %}

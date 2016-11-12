@@ -18,6 +18,7 @@ import argparse
 import ConfigParser
 import os
 from illustrator.illustrator_core import Illustrator
+import jinja2
 
 class Lindwurm:
     def __init__(self):
@@ -54,8 +55,28 @@ class Lindwurm:
         if not parsed_cnfg_f:
             raise RuntimeError("no config file")
 
+    def param_revealer(self, **seed_args):
+        # roles loc
+        modules_root = self.conf.get('revealer', 'modules_root')
+        templateLoader = jinja2.FileSystemLoader( searchpath=modules_root)
+        templateEnv = jinja2.Environment( loader=templateLoader )
+
+        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'vars', 'main.yml')
+        reveal_mod_cfg_template = templateEnv.get_template( reveal_mod_cfg_template_f )
+
+        # ONLY FROM ARGS OR MORE?
+        conf_seed = seed_args 
+
+        conf_seed_data = reveal_mod_cfg_template.render( conf_seed )
+
+        conf_seed_f = os.path(modules_root, self.args.curr_subcmd, 'vars', 'main.yml')
+        with open(conf_seed_f, 'wb') as out_f:
+            out_f.write(conf_seed_data)
+
     def run(self):
         construer = self.illustrator.conjure(self.args.curr_subcmd)
+
+        construer.do_graphical()
 
         construer.do_term(self.args)
 
