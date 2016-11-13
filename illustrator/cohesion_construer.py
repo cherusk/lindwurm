@@ -20,6 +20,8 @@ import json
 from colorama import Fore, Back, Style
 import networkx as nx
 import matplotlib.pyplot as plt
+from collections import Callable
+from sets import Set
 
 class Construer:
     """
@@ -33,6 +35,122 @@ class Construer:
 
     def do_term(self, args):
         raise  NotImplementedError
+
+    @staticmethod
+    def traverse(obj, callback=None):
+        cb_res = callback(obj)
+
+        if cb_res == "recurse":
+            pass
+        else:
+            return obj
+
+        if isinstance(obj, dict):
+            {k: Construer.traverse(v, callback)
+                     for k, v in obj.items()}
+        elif isinstance(obj, list):
+            [Construer.traverse(elem, callback)
+                     for elem in obj]
+        else:
+            return obj 
+
+class CohesionTermCb(Callable):
+    def __init__(self):
+        self.data_refining = {}
+        self.service_fmt = "* srv: %s (%s)"
+        self.curr_host = None
+        self.curr_conn = Set([])
+        self.curr_disj = Set([])
+        # coe - course of events
+        self.coe_track = { "curr_run" : 0,  "num_runs" : 0}
+
+    def __call__(self, obj):
+
+        progress = self.predicate(obj)
+
+        if progress == "service":
+            if obj["@portid"] not in self.data_refining.keys():
+                srv = obj["service"]
+                repres = self.service_fmt % (srv["@name"], obj["@portid"])
+                self.form_refined_entry(repres , obj["@portid"])
+
+            if obj["state"]["@state"] == "open":
+                self.curr_conn.add(obj["@portid"])
+            else:
+                self.curr_disj.add(obj["@portid"])
+
+            # ugily depending on order
+            self.replenish()
+
+        elif progress == "host":
+            self.coe_track["curr_run"] += 1
+            hostname = obj["hostname"]
+            if isinstance(hostname, list):
+                for variant in hostname:
+                    if variant["@type"] == "user":
+                        self.curr_host = variant["@name"]
+            elif isinstance(hostname, dict):
+                self.curr_host = hostname["@name"]
+
+        elif progress == "scan":
+            self.coe_track["num_runs"] = len(obj)
+            #in next host: so replenish cached conn/host data
+            # map since no zip_longest
+            progress = "recurse"
+
+        #if self.is_last_run():
+            #self.replenish()
+
+        return progress
+
+    # TODO consider Lists
+    @staticmethod
+    def append_str(str1, str2):
+        fmt = "%s %s"
+        str1 = fmt % (str1, str2)
+        return str1
+
+    def replenish(self):
+        for port_disj, port_con in map(None, self.curr_disj, self.curr_conn): 
+            if port_con:
+                self.data_refining[str(port_con)]["conn"] = \
+                        CohesionTermCb.append_str(self.data_refining[str(port_con)]["conn"], \
+                        self.curr_host)
+            if port_disj:
+                self.data_refining[str(port_disj)]["disj"] = \
+                        CohesionTermCb.append_str(self.data_refining[str(port_disj)]["disj"], \
+                        self.curr_host) 
+        self.curr_conn = Set([])
+        self.curr_disj = Set([])
+        self.srv_done = False
+        self.hosts_done = False
+
+    def is_last_run(self):
+        return self.coe_track["num_runs"] == self.coe_track["curr_run"]
+
+    def is_run_done(self):
+        return self.srv_done == True and self.hosts_done == True
+
+    def predicate(self, obj):
+
+        if isinstance(obj, dict) and "@portid" in obj.keys():
+            return "service"
+        elif isinstance(obj, dict) and "hostname" in obj.keys():
+            return "host"
+        elif isinstance(obj, list) and "nmaprun" in obj[0].keys():
+            return "scan"
+        else:
+            return "recurse"
+
+    def form_refined_entry(self, repres, p_id):
+        new_entry = {"repres": repres, "conn" : "connected", "disj" : "disjoined" } 
+        self.data_refining[p_id] = new_entry
+
+    def show(self):
+        for out_elem in self.data_refining.values():
+            print out_elem["repres"]
+            print out_elem["conn"]
+            print out_elem["disj"]
 
 class Cohesion(Construer):
     """
@@ -51,55 +169,13 @@ class Cohesion(Construer):
 
     def do_term(self, args):
         inter_data = json.loads(self.run_data)
+        run = inter_data["run"]
 
         print (">>objective: [%s]" % (args.curr_subcmd))
 
-        run = inter_data["run"]
-        
-        self.visit_ctx = [ ]
-
-        for scaffold_node in run["nmap"]:
+        for scaffold_node, scan in run["nmap"].items():
             print ( Fore.BLUE + "--- scaffold_node: %s" % (scaffold_node))
             print(Style.RESET_ALL)
-            for scan in run["nmap"][scaffold_node]:
-                scan_content = scan ["nmaprun"] 
-                if type(scan_content["host"]) == dict:
-                    self.do_term_host_p(scan_content["host"])
-                else:
-                    for scanned_host in scan_content["host"]:
-                        self.do_term_host_p(scanned_host)
-
-            for out in self.visit_ctx:
-                print "%s \n %s \n %s \n " % (out["repres"], \
-                        out["conn"], out["disj"])
-            self.visit_ctx = []
-  
-    def do_term_host_p(self, scanned_host): 
-        ports = scanned_host["ports"]
-        for srv in ports["port"]:
-            if srv["@portid"] not in [ ctx_elem["@portid"] for ctx_elem in self.visit_ctx ]:
-                repres = "* srv: %s (%s)" % (srv["service"]["@name"], srv["@portid"])
-                self.form_visit_ctx(repres , srv["@portid"])
-            curr_ctx = filter(lambda x: srv["@portid"] == x["@portid"], self.visit_ctx)[0]
-            if scanned_host["hostnames"] is None:
-                continue
-            #TODO REFACTOR
-            if type(scanned_host["hostnames"]["hostname"]) == dict:
-                host_name = scanned_host["hostnames"]["hostname"]
-                if host_name["@type"] == "user":
-                    if srv["state"]["@state"] == "open":
-                        curr_ctx["conn"] = "%s %s" % (curr_ctx["conn"], host_name["@name"])
-                    else:
-                        curr_ctx["disj"] = "%s %s" % (curr_ctx["disj"], host_name["@name"])
-                continue
-            for host_name in scanned_host["hostnames"]["hostname"]:
-                if host_name["@type"] == "user":
-                    if srv["state"]["@state"] == "open":
-                        curr_ctx["conn"] = "%s %s" % (curr_ctx["conn"], host_name["@name"])
-                    else:
-                        curr_ctx["disj"] = "%s %s" % (curr_ctx["disj"], host_name["@name"])
-
-    def form_visit_ctx(self, repres, p_id):
-        new_ctx = { "@portid": p_id, "repres": repres, "conn" : "connected", "disj" : "disjoined" } 
-        self.visit_ctx.append(new_ctx)
-        
+            cb = CohesionTermCb()
+            Construer.traverse(scan, cb)
+            cb.show()
