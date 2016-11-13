@@ -61,7 +61,7 @@ class Lindwurm:
         templateLoader = jinja2.FileSystemLoader( searchpath=modules_root)
         templateEnv = jinja2.Environment( loader=templateLoader )
 
-        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'vars', 'main.yml')
+        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'templates', 'cnfg.j2')
         reveal_mod_cfg_template = templateEnv.get_template( reveal_mod_cfg_template_f )
 
         # ONLY FROM ARGS OR MORE?
@@ -76,7 +76,7 @@ class Lindwurm:
     def run(self):
         construer = self.illustrator.conjure(self.args.curr_subcmd)
 
-        construer.do_graphical()
+        #construer.do_graphical()
 
         construer.do_term(self.args)
 
