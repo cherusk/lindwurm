@@ -20,23 +20,58 @@ import os
 from illustrator.illustrator_core import Illustrator
 import jinja2
 
+
+#description data
+guidance = {
+        'lindwurm' : """
+        Ad hoc distributed systems pervasion and introspection equipment. 
+        """,
+        'subcmds' : """
+        <<< Subcommands >>>
+        """,
+        'cohesion' : 
+        {
+            'descr': """
+            Module does investigate connection outline of a distributed environment and report outcome in various on purpose variants. 
+            """,
+            'epilog' : """
+            ---
+            """,
+            'args_descr' : {
+                'objectives' : """
+                Abstract wayers which the submodule should focus on for this run: link, network, transport
+                """,
+                '--n_prots' : """
+                Protocols to investigate on network level. 
+                """,
+                '--t_serv' : """
+                Services to investigate on transport level.
+                """,
+                '--t_ports' : """
+                Ports to investigate on transport level. (Complementary to --t_serv)
+                """
+                }
+            }
+        }
+
 class Lindwurm:
     def __init__(self):
 
         self.load_cnfg()
 
         # Todo descriptions
-        self.lw_parser = argparse.ArgumentParser(description='Lindwurm')
+        self.lw_parser = argparse.ArgumentParser(description=guidance['lindwurm'])
         self.lw_subparsers = \
-                self.lw_parser.add_subparsers(description='subcommands:', dest='curr_subcmd')
+                self.lw_parser.add_subparsers(description=guidance['subcmds'], dest='curr_subcmd')
 
-        self.cohesion_parser = self.lw_subparsers.add_parser('cohesion', description='cohesion')
-        self.cohesion_parser.add_argument('objectives', metavar='obj', nargs='+', choices=['link', 'net', 'transport']) 
+        self.cohesion_parser = self.lw_subparsers.add_parser('cohesion', description=guidance['cohesion']['descr'])
+        self.cohesion_parser.add_argument('objectives', metavar='obj', nargs='+', \
+                choices=['link', 'net', 'transport'], help=guidance['cohesion']['args_descr']['objectives']) 
 
         #Todo: sane defs.
-        self.cohesion_parser.add_argument('--n_prots')
-        self.cohesion_parser.add_argument('--t_serv')
-        self.cohesion_parser.add_argument('--t_ports')
+        self.cohesion_parser.add_argument('--n_prots', help=guidance['cohesion']['args_descr']['--n_prots'])
+        self.cohesion_parser.add_argument('--t_serv' , help=guidance['cohesion']['args_descr']['--t_serv'])
+        self.cohesion_parser.add_argument('--t_ports', help=guidance['cohesion']['args_descr']['--t_ports'])
 
         self.illustrator = Illustrator(self.config)
 
