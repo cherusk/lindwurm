@@ -61,8 +61,6 @@ class CohesionTermCb(Callable):
         self.curr_host = None
         self.curr_conn = Set([])
         self.curr_disj = Set([])
-        # coe - course of events
-        self.coe_track = { "curr_run" : 0,  "num_runs" : 0}
 
     def __call__(self, obj):
 
@@ -80,10 +78,10 @@ class CohesionTermCb(Callable):
                 self.curr_disj.add(obj["@portid"])
 
             # ugily depending on order
+            #in next host: so replenish cached conn/host data
             self.replenish()
 
         elif progress == "host":
-            self.coe_track["curr_run"] += 1
             hostname = obj["hostname"]
             if isinstance(hostname, list):
                 for variant in hostname:
@@ -93,13 +91,7 @@ class CohesionTermCb(Callable):
                 self.curr_host = hostname["@name"]
 
         elif progress == "scan":
-            self.coe_track["num_runs"] = len(obj)
-            #in next host: so replenish cached conn/host data
-            # map since no zip_longest
             progress = "recurse"
-
-        #if self.is_last_run():
-            #self.replenish()
 
         return progress
 
@@ -111,6 +103,7 @@ class CohesionTermCb(Callable):
         return str1
 
     def replenish(self):
+        # map since no zip_longest
         for port_disj, port_con in map(None, self.curr_disj, self.curr_conn): 
             if port_con:
                 self.data_refining[str(port_con)]["conn"] = \
@@ -124,12 +117,6 @@ class CohesionTermCb(Callable):
         self.curr_disj = Set([])
         self.srv_done = False
         self.hosts_done = False
-
-    def is_last_run(self):
-        return self.coe_track["num_runs"] == self.coe_track["curr_run"]
-
-    def is_run_done(self):
-        return self.srv_done == True and self.hosts_done == True
 
     def predicate(self, obj):
 
