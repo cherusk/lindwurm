@@ -49,6 +49,9 @@ guidance = {
                 """,
                 '--t_ports' : """
                 Ports to investigate on transport level. (Complementary to --t_serv)
+                """ ,
+                '--format' : """
+                Alternative out formats: Json | Tree | Plain
                 """
                 }
             }
@@ -69,9 +72,11 @@ class Lindwurm:
                 choices=['link', 'net', 'transport'], help=guidance['cohesion']['args_descr']['objectives']) 
 
         #Todo: sane defs.
+        # and better mainten
         self.cohesion_parser.add_argument('--n_prots', help=guidance['cohesion']['args_descr']['--n_prots'])
         self.cohesion_parser.add_argument('--t_serv' , help=guidance['cohesion']['args_descr']['--t_serv'])
         self.cohesion_parser.add_argument('--t_ports', help=guidance['cohesion']['args_descr']['--t_ports'])
+        self.cohesion_parser.add_argument('-f', '--format', help=guidance['cohesion']['args_descr']['--format'], default='Plain')
 
         self.illustrator = Illustrator(self.config)
 

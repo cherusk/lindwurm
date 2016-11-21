@@ -22,6 +22,9 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from collections import Callable
 from sets import Set
+from asciitree import LeftAligned
+from collections import OrderedDict as OD
+from asciitree.drawing import BoxStyle, BOX_HEAVY
 
 class Construer:
     """
@@ -37,40 +40,71 @@ class Construer:
         raise  NotImplementedError
 
     @staticmethod
-    def traverse(obj, callback=None):
-        cb_res = callback(obj)
+    def traverse(obj, callback=None, **ctx):
+        cb_res = callback(obj, **ctx)
 
         if cb_res == "recurse":
             pass
         else:
             return obj
-
+        
         if isinstance(obj, dict):
-            {k: Construer.traverse(v, callback)
+            {k: Construer.traverse(v, callback, **ctx)
                      for k, v in obj.items()}
         elif isinstance(obj, list):
-            [Construer.traverse(elem, callback)
+            [Construer.traverse(elem, callback, **ctx)
                      for elem in obj]
         else:
             return obj 
 
+class TermTreeConvCb(Callable):
+    def __init__(self):
+        pass
+
+    def __call__(self, obj):
+        progress = self.predicate(obj)
+
+        if 'convers' == progress:
+            new_form = { 'connected' : [], 'disjoined' : [] }
+            for conn, disj in map(None, obj['connected'], obj['disjoined']):
+                if conn:
+                    new_form['connected'].append( tuple( [ conn, {} ] ) )
+                if disj:
+                    new_form['disjoined'].append( tuple( [ disj, {} ] ) )
+
+            obj['connected'] = OD( new_form['connected'] )
+            obj['disjoined'] = OD( new_form['disjoined'] )
+
+            del obj['srv']
+
+            progress = 'return'
+
+        return progress 
+
+    def predicate(self, obj):
+        if isinstance(obj, dict) and 'srv' in obj.keys():
+            return 'convers'
+        else:
+            return 'recurse'
+
 class CohesionTermCb(Callable):
     def __init__(self):
-        self.data_refining = {}
+        self.data_refining = { 'scaffolding' : {  } }
         self.service_fmt = "* srv: %s (%s)"
         self.curr_host = None
         self.curr_conn = Set([])
         self.curr_disj = Set([])
 
-    def __call__(self, obj):
+    def __call__(self, obj, **ctx):
 
         progress = self.predicate(obj)
 
         if progress == "service":
-            if obj["@portid"] not in self.data_refining.keys():
+            scaff_node = ctx['scaff_node'] 
+            self.ensure_def_scaff_n(scaff_node)
+            if obj["@portid"] not in self.data_refining['scaffolding'][scaff_node]:
                 srv = obj["service"]
-                repres = self.service_fmt % (srv["@name"], obj["@portid"])
-                self.form_refined_entry(repres , obj["@portid"])
+                self.form_refined_entry(srv, obj["@portid"], scaff_node)
 
             if obj["state"]["@state"] == "open":
                 self.curr_conn.add(obj["@portid"])
@@ -79,7 +113,7 @@ class CohesionTermCb(Callable):
 
             # ugily depending on order
             #in next host: so replenish cached conn/host data
-            self.replenish()
+            self.replenish(scaff_node)
 
         elif progress == "host":
             hostname = obj["hostname"]
@@ -90,9 +124,6 @@ class CohesionTermCb(Callable):
             elif isinstance(hostname, dict):
                 self.curr_host = hostname["@name"]
 
-        elif progress == "scan":
-            progress = "recurse"
-
         return progress
 
     # TODO consider Lists
@@ -102,42 +133,60 @@ class CohesionTermCb(Callable):
         str1 = fmt % (str1, str2)
         return str1
 
-    def replenish(self):
+    def ensure_def_scaff_n(self, scaff_node):
+        if scaff_node not in self.data_refining['scaffolding'].keys():
+            self.data_refining['scaffolding'][scaff_node] = {  } 
+
+    def replenish(self, scaff_node):
         # map since no zip_longest
+        curr_scaff_n = self.data_refining['scaffolding'][scaff_node]
         for port_disj, port_con in map(None, self.curr_disj, self.curr_conn): 
             if port_con:
-                self.data_refining[str(port_con)]["conn"] = \
-                        CohesionTermCb.append_str(self.data_refining[str(port_con)]["conn"], \
-                        self.curr_host)
+                curr_scaff_n[str(port_con)]["connected"].append(self.curr_host)
             if port_disj:
-                self.data_refining[str(port_disj)]["disj"] = \
-                        CohesionTermCb.append_str(self.data_refining[str(port_disj)]["disj"], \
-                        self.curr_host) 
+                curr_scaff_n[str(port_disj)]["disjoined"].append(self.curr_host)
         self.curr_conn = Set([])
         self.curr_disj = Set([])
-        self.srv_done = False
-        self.hosts_done = False
 
     def predicate(self, obj):
-
         if isinstance(obj, dict) and "@portid" in obj.keys():
             return "service"
         elif isinstance(obj, dict) and "hostname" in obj.keys():
             return "host"
-        elif isinstance(obj, list) and "nmaprun" in obj[0].keys():
-            return "scan"
         else:
             return "recurse"
 
-    def form_refined_entry(self, repres, p_id):
-        new_entry = {"repres": repres, "conn" : "connected", "disj" : "disjoined" } 
-        self.data_refining[p_id] = new_entry
+    def form_refined_entry(self, srv, p_id, scaff_node):
+        new_entry = { "srv" : srv, "connected" : [], "disjoined" : [] }
+        self.data_refining['scaffolding'][scaff_node][p_id] = new_entry
 
-    def show(self):
-        for out_elem in self.data_refining.values():
-            print out_elem["repres"]
-            print out_elem["conn"]
-            print out_elem["disj"]
+    def show(self, what):
+
+        print self.data_refining
+
+        if len(what) == 0 or 'Plain' in what:
+            scaffold_nodes = self.data_refining['scaffolding']
+            for scaffold_node, ports in scaffold_nodes.items():
+                print ( Fore.BLUE + "--- scaffold_node: %s" % (scaffold_node))
+                print(Style.RESET_ALL)
+                for p_id, ctx in ports.items(): 
+                    print self.service_fmt % ( ctx["srv"]['@name'], p_id)
+                    for key in [ 'connected', 'disjoined' ]:
+                        print CohesionTermCb.append_str(key, " ".join(ctx[key]))
+
+            print "\n"
+
+        # JSON 
+        if 'Json' in what:
+            print 'JSON \n'
+            print json.dumps(self.data_refining)
+        
+        # maybe deep copy if data reused
+        if 'Tree' in what:
+            # TREE
+            Construer.traverse(self.data_refining, TermTreeConvCb())
+            tr = LeftAligned(draw=BoxStyle(gfx=BOX_HEAVY))
+            print(tr(self.data_refining))
 
 class Cohesion(Construer):
     """
@@ -160,9 +209,7 @@ class Cohesion(Construer):
 
         print (">>objective: [%s]" % (args.curr_subcmd))
 
-        for scaffold_node, scan in run["nmap"].items():
-            print ( Fore.BLUE + "--- scaffold_node: %s" % (scaffold_node))
-            print(Style.RESET_ALL)
-            cb = CohesionTermCb()
-            Construer.traverse(scan, cb)
-            cb.show()
+        cb = CohesionTermCb()
+        for scaffold_node in run["nmap"]:
+            Construer.traverse(run['nmap'][scaffold_node], cb, scaff_node=scaffold_node)
+        cb.show(args.format)
