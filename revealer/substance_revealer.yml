@@ -1,0 +1,10 @@
+---
+    - hosts: all
+      gather_facts: False
+      vars:
+      roles:
+          - { role: core }
+          - { role: tcpdump, expr: "{{ expr }}", duration: "{{ dur }}" }
+      post_tasks:
+          - name: gather revelation
+            include: /home/matthias/Projects/sync/lindwurm/utils/bulk_fetch.yml r_out_dir={{ r_tcpd_out_dir }} l_out_dir={{ l_tcpd_out_dir }}

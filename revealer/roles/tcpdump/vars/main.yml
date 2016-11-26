@@ -1,0 +1,4 @@
+---
+# vars file for tcpdump
+r_tcpd_out_dir: /tmp/tcpdump/
+l_tcpd_out_dir: /home/matthias/Projects/sync/lindwurm/runs/tcpdump_out/
