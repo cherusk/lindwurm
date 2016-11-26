@@ -195,6 +195,7 @@ class Cohesion(Construer):
     """
     def __init__(self, aggreg_run_data):
         self.run_data = aggreg_run_data
+        print aggreg_run_data
 
     def do_graphical(self):
         #G=nx.Graph([(0,1),(1,2),(2,3)])
