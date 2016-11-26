@@ -54,6 +54,48 @@ guidance = {
                 Alternative out formats: Json | Tree | Plain
                 """
                 }
+            },
+        'quality' : 
+        {
+            'descr': """
+            """,
+            'epilog' : """
+            ---
+            """,
+            'args_descr' : {
+                'objectives' : """
+                Submodule for doing an ad hoc distributed quality investigation
+                """,
+                '--n_prots' : """
+                """,
+                '--t_serv' : """
+                """,
+                '--t_ports' : """
+                """ ,
+                '--format' : """
+                """
+                }
+            },
+        'substance': 
+        {
+            'descr': """
+            Module to action a distributed tracing run
+            """,
+            'epilog' : """
+            ---
+            """,
+            'args_descr' : {
+                'objectives' : """
+                """,
+                '--n_prots' : """
+                """,
+                '--t_serv' : """
+                """,
+                '--t_ports' : """
+                """ ,
+                '--format' : """
+                """
+                }
             }
         }
 
@@ -77,6 +119,10 @@ class Lindwurm:
         self.cohesion_parser.add_argument('--t_serv' , help=guidance['cohesion']['args_descr']['--t_serv'])
         self.cohesion_parser.add_argument('--t_ports', help=guidance['cohesion']['args_descr']['--t_ports'])
         self.cohesion_parser.add_argument('-f', '--format', help=guidance['cohesion']['args_descr']['--format'], default='Plain')
+
+        self.quality_parser = self.lw_subparsers.add_parser('quality', description=guidance['quality']['descr'])
+
+        self.substance_parser = self.lw_subparsers.add_parser('substance', description=guidance['substance']['descr'])
 
         self.illustrator = Illustrator(self.config)
 

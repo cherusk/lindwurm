@@ -16,6 +16,8 @@
 
 from parser.aggregator import Aggregator
 from cohesion_construer import Cohesion
+from substance_construer import Substance
+from quality_construer import Quality 
 import ConfigParser
 import os
 
@@ -42,3 +44,9 @@ class Illustrator:
 
     def cohesion(self):
         return Cohesion(self.aggreg_data)
+    
+    def substance(self):
+        return Quality(self.aggreg_data)
+
+    def substance(self):
+        return Substance()
