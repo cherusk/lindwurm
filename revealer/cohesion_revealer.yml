@@ -22,10 +22,6 @@
       roles:
           - { role: core }
           - { role: nmap , opts: "-sS -p 22-23", nmap_out: "{{ r_nmap_out_dir }}" }
-          - { role: mtr }
       post_tasks:
           - name: gather revelation
             include: /home/matthias/Projects/sync/lindwurm/utils/bulk_fetch.yml r_out_dir={{ r_nmap_out_dir }} l_out_dir={{ l_nmap_out_dir }}
-
-          - name: gather mtr revelation
-            include: /home/matthias/Projects/sync/lindwurm/utils/bulk_fetch.yml r_out_dir={{ r_mtr_out_dir }} l_out_dir={{ l_mtr_out_dir }}

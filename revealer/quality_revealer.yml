@@ -1,0 +1,12 @@
+---
+    - hosts: all
+      gather_facts: False
+      vars:
+          utils: "/home/matthias/Projects/sync/lindwurm/utils"
+      roles:
+          - { role: core }
+          - { role: mtr }
+      post_tasks:
+
+          - name: gather mtr revelation
+            include: "{{ utils  }}"/bulk_fetch.yml r_out_dir={{ r_mtr_out_dir }} l_out_dir={{ l_mtr_out_dir }}
