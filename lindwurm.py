@@ -17,6 +17,7 @@
 import argparse
 import ConfigParser
 import os
+import subprocess
 from illustrator.illustrator_core import Illustrator
 import jinja2
 
@@ -99,6 +100,43 @@ guidance = {
             }
         }
 
+class Launcher:
+    def __init__(self, config):
+        self.conf = config
+        self.ansible_cmd = ['ansible-playbook']
+
+    def launch(self, params):
+        revealer = "%s_%s%s" % ( args.curr_subcmd , 'revealer', '.yml' )
+
+        self.ansible_cmd.append(revealer)
+
+        self.param_revealer(params)
+
+        p = subprocess.Popen(self.ansible_cmd, stdout=subprocess.PIPE, shell=True)
+
+        #ToDo: make use p communication 
+        (out, err) = p.communicate()
+
+        p_status = p.wait()
+
+    def param_revealer(self, **seed_args):
+        # roles loc
+        modules_root = self.conf.get('revealer', 'modules_root')
+        templateLoader = jinja2.FileSystemLoader( searchpath=modules_root)
+        templateEnv = jinja2.Environment( loader=templateLoader )
+
+        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'templates', 'cnfg.j2')
+        reveal_mod_cfg_template = templateEnv.get_template( reveal_mod_cfg_template_f )
+
+        # ONLY FROM ARGS OR MORE?
+        conf_seed = seed_args 
+
+        conf_seed_data = reveal_mod_cfg_template.render( conf_seed )
+
+        conf_seed_f = os.path(modules_root, self.args.curr_subcmd, 'vars', 'main.yml')
+        with open(conf_seed_f, 'wb') as out_f:
+            out_f.write(conf_seed_data)
+
 class Lindwurm:
     def __init__(self):
 
@@ -125,9 +163,15 @@ class Lindwurm:
         self.substance_parser = self.lw_subparsers.add_parser('substance', description=guidance['substance']['descr'])
 
         self.illustrator = Illustrator(self.config)
+        self.launcher = Launcher(self.config)
 
     def parse_args(self):
         self.args = self.lw_parser.parse_args()
+        self.params = self.refine_args(self.args)
+
+    def refine_args(self, args):
+        #todo mapping
+        return refined_args
 
     def load_cnfg(self):
         mod_path = os.path.abspath(__file__) 
@@ -141,25 +185,10 @@ class Lindwurm:
         if not parsed_cnfg_f:
             raise RuntimeError("no config file")
 
-    def param_revealer(self, **seed_args):
-        # roles loc
-        modules_root = self.conf.get('revealer', 'modules_root')
-        templateLoader = jinja2.FileSystemLoader( searchpath=modules_root)
-        templateEnv = jinja2.Environment( loader=templateLoader )
-
-        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'templates', 'cnfg.j2')
-        reveal_mod_cfg_template = templateEnv.get_template( reveal_mod_cfg_template_f )
-
-        # ONLY FROM ARGS OR MORE?
-        conf_seed = seed_args 
-
-        conf_seed_data = reveal_mod_cfg_template.render( conf_seed )
-
-        conf_seed_f = os.path(modules_root, self.args.curr_subcmd, 'vars', 'main.yml')
-        with open(conf_seed_f, 'wb') as out_f:
-            out_f.write(conf_seed_data)
-
     def run(self):
+
+        self.launcher.launch(self.params)
+
         construer = self.illustrator.conjure(self.args.curr_subcmd)
 
         #construer.do_graphical()
