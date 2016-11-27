@@ -2,7 +2,7 @@
 # tasks file for nmap
 #
     - name: prep nmap probing out directory
-      file: path={{ nmap_out }} state=directory mode=0755
+      file: path={{ nmap_out }} state=directory mode=0700
 
     - name: reveal by nmap scan 
       #todo: after data analys.

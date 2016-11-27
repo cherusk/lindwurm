@@ -20,7 +20,7 @@ import os
 import subprocess
 from illustrator.illustrator_core import Illustrator
 import jinja2
-
+from collections import Callable
 
 #description data
 guidance = {
@@ -100,41 +100,97 @@ guidance = {
             }
         }
 
+
+class ParamsRefineCb(Callable):
+
+    #todo mapping
+    lw_to_ans_map = {
+        "cohesion" : {
+            "opts" : { "args" : [ "n_prots", "t_serv", "t_ports" ] }
+        },
+        "quality" : {},
+        "substance" : {}
+    }
+
+    def __init__(self, submodule):
+        self.submod = submodule
+        self.action =  getattr(self, submodule, "unknown")
+
+        if self.action == "unknown":
+            raise RuntimeError("unknown submodule")
+
+    def __call__(self, args):
+        params = self.action(args)
+        return params 
+
+    def cohesion(self, args):
+        params = {}
+        #for param in lw_to_ans_map[self.submod]:
+            #for arg in param['args']:
+                #if param == "opts":
+        #if 'link' in args.objectives:
+            #l_args = ''
+
+        #if 'network' in args.objectives:
+            #n_args= 
+
+        #basic start
+        if 'transport' in args.objectives:
+            print args
+            params["opts"] = '-sS -p '
+
+            if args.t_ports:
+                params["opts"] = "\"%s %s \"" % ( params['opts'], args.t_ports )
+
+        return params
+
+    def quality(self, args):
+        raise  NotImplementedError
+
+    def substance(self, args):
+        raise  NotImplementedError
+
 class Launcher:
     def __init__(self, config):
         self.conf = config
         self.ansible_cmd = ['ansible-playbook']
 
-    def launch(self, params):
-        revealer = "%s_%s%s" % ( args.curr_subcmd , 'revealer', '.yml' )
+    def launch(self, submodule, params):
+        revealer = "%s_%s%s" % ( submodule, 'revealer', '.yml' )
+        revealer_p = os.path.join( self.conf.get('DEFAULT', 'lindwurm_dir'), 'revealer', revealer) 
 
-        self.ansible_cmd.append(revealer)
+        self.ansible_cmd.append(revealer_p)
 
-        self.param_revealer(params)
+        self.param_revealer(submodule, **params)
 
-        p = subprocess.Popen(self.ansible_cmd, stdout=subprocess.PIPE, shell=True)
+        p = subprocess.Popen(" ".join(self.ansible_cmd), stdout=subprocess.PIPE, shell=True)
 
         #ToDo: make use p communication 
         (out, err) = p.communicate()
+        
+        print out
+        print err
 
         p_status = p.wait()
 
-    def param_revealer(self, **seed_args):
+    def param_revealer(self, submodule, **seed_args):
         # roles loc
         modules_root = self.conf.get('revealer', 'modules_root')
         templateLoader = jinja2.FileSystemLoader( searchpath=modules_root)
         templateEnv = jinja2.Environment( loader=templateLoader )
 
-        reveal_mod_cfg_template_f = os.path.join(modules_root, 'core', 'templates', 'cnfg.j2')
+        reveal_mod_cfg_template_f = os.path.join('.', 'core', 'templates', 'cnfg.j2')
         reveal_mod_cfg_template = templateEnv.get_template( reveal_mod_cfg_template_f )
 
+        print seed_args
         # ONLY FROM ARGS OR MORE?
-        conf_seed = seed_args 
+        conf_seed = { 'conf_seed' :  seed_args }
 
         conf_seed_data = reveal_mod_cfg_template.render( conf_seed )
 
-        conf_seed_f = os.path(modules_root, self.args.curr_subcmd, 'vars', 'main.yml')
-        with open(conf_seed_f, 'wb') as out_f:
+        #todo solve param distribution
+        conf_seed_f = os.path.join(modules_root, 'core', 'vars', 'params.yml')
+        with open(conf_seed_f, "w+") as out_f:
             out_f.write(conf_seed_data)
 
 class Lindwurm:
@@ -151,7 +207,7 @@ class Lindwurm:
         self.cohesion_parser.add_argument('objectives', metavar='obj', nargs='+', \
                 choices=['link', 'net', 'transport'], help=guidance['cohesion']['args_descr']['objectives']) 
 
-        #Todo: sane defs.
+        #Todo: sane ggdefs.
         # and better mainten
         self.cohesion_parser.add_argument('--n_prots', help=guidance['cohesion']['args_descr']['--n_prots'])
         self.cohesion_parser.add_argument('--t_serv' , help=guidance['cohesion']['args_descr']['--t_serv'])
@@ -167,11 +223,12 @@ class Lindwurm:
 
     def parse_args(self):
         self.args = self.lw_parser.parse_args()
-        self.params = self.refine_args(self.args)
+        self.params = self.distil_params(self.args)
 
-    def refine_args(self, args):
-        #todo mapping
-        return refined_args
+    def distil_params(self, args):
+        distiller = ParamsRefineCb(args.curr_subcmd)
+        params = distiller(args)
+        return params 
 
     def load_cnfg(self):
         mod_path = os.path.abspath(__file__) 
@@ -187,7 +244,7 @@ class Lindwurm:
 
     def run(self):
 
-        self.launcher.launch(self.params)
+        self.launcher.launch(self.args.curr_subcmd, self.params)
 
         construer = self.illustrator.conjure(self.args.curr_subcmd)
 

@@ -1,0 +1,5 @@
+---
+# vars file for revealer_core
+#
+
+opts : &#34;-sS -p  22 &#34;
