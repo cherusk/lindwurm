@@ -161,6 +161,10 @@ class Launcher:
 
         self.ansible_cmd.append(revealer_p)
 
+        if "substance" == submodule:
+            with open(self.conf.get('DEFAULT', 'tracer_expr_m'), "r") as expr_m_f:
+                params['expr_map'] = json.load(expr_m_f)  
+
         self.param_revealer(submodule, **params)
 
         p = subprocess.Popen(" ".join(self.ansible_cmd), stdout=subprocess.PIPE, shell=True)

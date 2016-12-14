@@ -4,8 +4,12 @@
      file: path={{ r_tcpd_out_dir }} state=directory mode=0700
 
    - name: tracing on all Ifaces (non_promisc)
-     shell: timeout {{ duration }} tcpdump -i any -w {{ r_tcpd_out_dir }}{{ inventory_hostname }} {{ expr }} 
+     shell: timeout {{ duration }} tcpdump -i any -w {{ r_tcpd_out_dir }}{{ inventory_hostname }} {{ item[0]['EXP'] }} 
      register: res 
      changed_when: "res.rc  == 124"
      failed_when: "res.rc != 124 and res.rc != 0"
-
+     #Draft
+     when: {{inventory_hostname}} == {{  item[1] }}
+     with_nested:
+         - {{ item[0]['HOSTS'] }}
+         - {{ expr_map['exp_h_map'] }}

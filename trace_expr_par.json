@@ -1,0 +1,18 @@
+{
+	'exp_h_map' :
+		[
+		{
+		'EXP': 'host suse42_n2',
+		'HOSTS' : [
+			'fedora24',
+			'suse42_n1'
+		]
+		},
+		{
+		'EXP': 'host fedora24 or host suse42_n1',
+		'HOSTS' : [
+			'suse42_n2'
+		]
+		} 
+		]
+}
