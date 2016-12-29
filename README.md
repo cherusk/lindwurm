@@ -6,6 +6,8 @@
 
 The Lindwurm is meant as an **Ad-Hoc** actioned means to analyze, explore, trace and monitor Distributed Systems and their intrinsic complexity. 
 
+It's meant to ease or quicken trouble shooting for system experts responsible for mid- to large scale Distributed Systems. Further, it should give insights and a good overview or technicial understanding to responsibles of environments.
+
 ## Example usage
 
 To check if a certain group of nodes does have cohesion trait on transport level, you would do:
